@@ -5,6 +5,8 @@ import sys
 import nibabel as nib
 import numpy as np
 
+# TODO also write a pipeline here that combines spline generation with ultrasound simulation
+
 def transform_pixels_to_mm(i, j, k,M,abc):
    """ Return X, Y, Z coordinates for i, j, k """
    # TODO figure out why multiplying with the affine doesn't work

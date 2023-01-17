@@ -47,7 +47,7 @@ if __name__ == "__main__":
     with open(args.txt_file) as file:
         spine_ids = [line.strip() for line in file]
 
-    placeholders = ['PathToFile', 'TransdSpline', 'DirSpline', 'PathToSaveUS']
+    placeholders = ['PathToFile', 'TransdSpline', 'DirSpline', 'PathToSaveUS', 'PathToSaveLabels']
 
     # open the csv file
     with open(args.splinedata, "r") as f:
@@ -75,6 +75,7 @@ if __name__ == "__main__":
 
             # create arguments list to call ImFusion with
             arguments = ""
+            dir_name = os.path.dirname(filenames[0])
             for p in placeholders:
                 if p == 'PathToFile':
                     value = filenames[0]
@@ -83,11 +84,15 @@ if __name__ == "__main__":
                 elif p == 'DirSpline':
                     value = list_at_curr_key[1]
                 elif p == 'PathToSaveUS':
-                    dir_name = os.path.dirname(filenames[0])
                     save_us_to = os.path.join(dir_name,"ultrasound_force" + str(deform))
                     if not os.path.exists(save_us_to):
                         os.mkdir(save_us_to)
                     value = save_us_to
+                elif p == 'PathToSaveLabels':
+                    save_labels_to = os.path.join(dir_name, "labels_force" + str(deform))
+                    if not os.path.exists(save_labels_to):
+                        os.mkdir(save_labels_to)
+                    value = save_labels_to
 
                 arguments += p + "=" + str(value) + " "
             print('ARGUMENTS: ', arguments)
