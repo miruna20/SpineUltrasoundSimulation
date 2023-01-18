@@ -57,12 +57,12 @@ if __name__ == "__main__":
     splines = {}
     for l in lines[1:]:
         # a line looks like this: Name;TransdSpline;DirSpline
-        splines[l.split(";")[0]] = [[l.split(";")[1]],[l.split(";")[2]]]
+        splines[l.split(";")[0]] = [[l.split(";")[1]], [l.split(";")[2]]]
 
     for spine_id in spine_ids:
         for deform in range(int(args.nr_deform_per_spine)):
-            print("Simulating ultrasound for: " + str(spine_id)+ "and deformation" + str(deform))
-            look_for = "**/*" + str(spine_id) + "*forcefield" + str(deform) + "*deformed*" + '*.nii.gz'
+            print("Simulating ultrasound for: " + str(spine_id) + "and deformation" + str(deform))
+            look_for = "**/*" + str(spine_id) + "*forcefield" + str(deform) + "*deformed*" '*centered*'+ '*.nii.gz'
             filenames = sorted(
                 glob.glob(os.path.join(args.root_path_spines, look_for), recursive=True))
             if (len(filenames) != 1):
@@ -84,7 +84,7 @@ if __name__ == "__main__":
                 elif p == 'DirSpline':
                     value = list_at_curr_key[1]
                 elif p == 'PathToSaveUS':
-                    save_us_to = os.path.join(dir_name,"ultrasound_force" + str(deform))
+                    save_us_to = os.path.join(dir_name, "ultrasound_force" + str(deform))
                     if not os.path.exists(save_us_to):
                         os.mkdir(save_us_to)
                     value = save_us_to
@@ -93,6 +93,8 @@ if __name__ == "__main__":
                     if not os.path.exists(save_labels_to):
                         os.mkdir(save_labels_to)
                     value = save_labels_to
+
+
 
                 arguments += p + "=" + str(value) + " "
             print('ARGUMENTS: ', arguments)
