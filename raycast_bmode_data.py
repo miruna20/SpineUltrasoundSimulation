@@ -57,7 +57,7 @@ if __name__ == "__main__":
             label = np.array(Image.open(filename_label))
             ray_casted_labels = ray_cast_image(label)
 
-            ray_casted_labels = cv2.dilate(ray_casted_labels, np.ones((10, 10)), iterations=1)
+            ray_casted_labels = cv2.dilate(ray_casted_labels, np.ones((3, 3)), iterations=1)
 
             label_name = os.path.basename(filename_label)
             image_save_path = os.path.join(dir_save_path, label_name.replace('.png','_raycasted.png'))
