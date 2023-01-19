@@ -137,7 +137,7 @@
 			<param name="original">1</param>
 			<param name="topDown">1</param>
 			<param name="uid">data2</param>
-			<param name="name">Images</param>
+			<param name="name">Labels</param>
 			<property name="Components">
 				<property name="DisplayOptions2d">
 					<param name="gamma">1</param>
@@ -455,6 +455,22 @@
 				<param name="resizable">0</param>
 			</property>
 		</property>
+		<property name="Replace Values">
+			<param name="OldValues">12 </param>
+			<param name="NewValues">0 </param>
+			<param name="ForceCPU">1</param>
+			<param name="execute">1</param>
+			<param name="inputUids">"data2" </param>
+			<param name="outputUids"/>
+		</property>
+		<property name="Replace Values">
+			<param name="OldValues">13 </param>
+			<param name="NewValues">1 </param>
+			<param name="ForceCPU">1</param>
+			<param name="execute">1</param>
+			<param name="inputUids">"data2" </param>
+			<param name="outputUids"/>
+		</property>
 		<property name="2D Image Set">
 			<param name="location">%(PathToSaveLabels)</param>
 			<param name="skip">0</param>
@@ -462,20 +478,7 @@
 			<param name="inputUids">"data2" </param>
 			<param name="outputUids"/>
 		</property>
-		<property name="Volume Reslicing">
-			<param name="Background Intensity">0</param>
-			<param name="Use 2D display options">0</param>
-			<param name="Nearest neighbor interpolation">0</param>
-			<param name="Slices per frame">1</param>
-			<param name="Slice spacing">1</param>
-			<param name="inputUids">"data1" "data0" </param>
-			<param name="outputUids"/>
-			<property name="Controller">
-				<param name="userCloseable">1</param>
-				<param name="expanded">1</param>
-				<param name="resizable">0</param>
-			</property>
-		</property>
+
 	</property>
 	<property name="Annotations">
 		<property name="GlSpline">

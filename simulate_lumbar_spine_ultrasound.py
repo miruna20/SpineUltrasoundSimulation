@@ -2,7 +2,7 @@ import argparse
 import os
 import glob
 import sys
-
+#TODO rename the labels that we obtain with the iws USHybridSim_deformed_saveBoneSegm to Labels0{1..9}.png
 if __name__ == "__main__":
 
     arg_parser = argparse.ArgumentParser(description="Generate strings in between vertebrae for spine deformation")
@@ -93,8 +93,6 @@ if __name__ == "__main__":
                     if not os.path.exists(save_labels_to):
                         os.mkdir(save_labels_to)
                     value = save_labels_to
-
-
 
                 arguments += p + "=" + str(value) + " "
             print('ARGUMENTS: ', arguments)
