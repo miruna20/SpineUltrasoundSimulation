@@ -2,10 +2,10 @@ import argparse
 import os
 import glob
 import sys
-#TODO rename the labels that we obtain with the iws USHybridSim_deformed_saveBoneSegm to Labels0{1..9}.png
+
 if __name__ == "__main__":
 
-    arg_parser = argparse.ArgumentParser(description="Generate strings in between vertebrae for spine deformation")
+    arg_parser = argparse.ArgumentParser(description="Simulating ultrasound images from label maps of deformed lumbar spine")
 
     arg_parser.add_argument(
         "--list_file_names",
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     with open(args.txt_file) as file:
         spine_ids = [line.strip() for line in file]
 
-    placeholders = ['PathToFile', 'TransdSpline', 'DirSpline', 'PathToSaveUS', 'PathToSaveLabels']
+    placeholders = ['PathToFile', 'TransdSpline', 'DirSpline', 'PathToSaveTrackingStream', 'PathToSaveUS', 'PathToSaveLabels']
 
     # open the csv file
     with open(args.splinedata, "r") as f:
@@ -83,6 +83,8 @@ if __name__ == "__main__":
                     value = list_at_curr_key[0]
                 elif p == 'DirSpline':
                     value = list_at_curr_key[1]
+                elif p == 'PathToSaveTrackingStream':
+                    value = os.path.join(dir_name, "tracking_force" + str(deform) + ".ts")
                 elif p == 'PathToSaveUS':
                     save_us_to = os.path.join(dir_name, "ultrasound_force" + str(deform))
                     if not os.path.exists(save_us_to):

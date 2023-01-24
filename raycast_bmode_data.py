@@ -4,6 +4,7 @@ from PIL import Image
 import numpy as np
 import cv2
 import glob
+import sys
 
 
 # Credits to Jane at https://github.com/lameski123/thesis/blob/main/processing_scripts/ray_cast_bmode_data.py
@@ -46,8 +47,12 @@ if __name__ == "__main__":
 
     for spine_id in spine_ids:
         print("Raycasting: " + str(spine_id) )
-        look_for = "**/*" + '*Labels*' + '.png'
+        look_for = "**/*" + '*Images*' + '.png'
         filenames_labels = sorted(glob.glob(os.path.join(args.root_path_spines, spine_id, look_for), recursive=True))
+
+        if (len(filenames_labels) == 0):
+            print("No labelmaps where found for spine: " + str(spine_id), file=sys.stderr)
+            continue
 
         dir_save_path = os.path.join(os.path.dirname(filenames_labels[0]), "raycasted")
         if(not os.path.exists(dir_save_path)):
