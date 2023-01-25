@@ -54,10 +54,10 @@ if __name__ == "__main__":
                 elif p == 'PathToTrackingStream':
                     value = os.path.join(dir_name,"tracking_force" + str(deform) + ".ts")
                 elif p == 'PathToSavePcd':
-                    value = os.path.join(dir_name, "partial_spine_pcd_force" + str(deform) + ".pcd")
+                    value = os.path.join(dir_name, spine_id + "_partial_spine_pcd_force" + str(deform) + ".pcd")
 
                 arguments += p + "=" + str(value) + " "
 
             print('ARGUMENTS: ', arguments)
-            os.system("ImFusionSuite" + " " + args.workspace_file + " " + arguments)
+            os.system("ImFusionConsole" + " " + args.workspace_file + " " + arguments)
             print('################################################### ')

@@ -5,7 +5,6 @@ import sys
 import nibabel as nib
 import numpy as np
 
-# TODO also write a pipeline here that combines spline generation with ultrasound simulation
 def transform_pixels_to_mm(coord_in_voxels, volume_size):
     # assume that the label map is situated exactly in the center of the coordinate system
     # as a consequence of having centered the deformed lumbar spine mesh
@@ -17,7 +16,9 @@ def transform_pixels_to_mm(coord_in_voxels, volume_size):
     return coord_in_mm
 
 if __name__ == "__main__":
-    arg_parser = argparse.ArgumentParser(description="Generate strings in between vertebrae for spine deformation")
+    arg_parser = argparse.ArgumentParser(description="Generating transducer splines and direction splines for each "
+                                                     "deformed spine. These are further used in the ultrasound "
+                                                     "simulation")
 
     arg_parser.add_argument(
         "--list_file_names",
