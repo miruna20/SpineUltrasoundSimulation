@@ -224,6 +224,11 @@
 			<param name="execute">1</param>
 			<param name="inputUids">"data1" </param>
 			<param name="outputUids">"data2" </param>
+			<property name="Selection">
+				<param name="first">0</param>
+				<param name="last">99999</param>
+				<param name="skip">0</param>
+			</property>
 		</property>
 		<property name="Extract Mesh">
 			<param name="Iso-Value">0.5</param>

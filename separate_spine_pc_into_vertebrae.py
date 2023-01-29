@@ -31,6 +31,8 @@ def load_unmerged_uncentered_deformed_vertebrae(root_path_vertebrae, spine_id, d
     look_for = "**/*" + str(spine_id) + "*forces*" + str(deform) + "*deformed*" + '*.obj'
     paths_vertebrae = sorted(glob.glob(os.path.join(root_path_vertebrae, look_for), recursive=True))
 
+    paths_vertebrae = [path for path in paths_vertebrae if 'scaled' not in os.path.basename(path)]
+
     if (len(paths_vertebrae) != 5):
         print("More or less than 5 vertebrae found for " + str(spine_id), file=sys.stderr)
 
