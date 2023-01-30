@@ -12,7 +12,7 @@ import glob
 
 scale_factor = 0.01
 
-def processOneVertebra(pathCompleteVertebra, pathToRootPartialPCD, nrPartialPCDPerSample=16, nrPointsProPartialPC=2048,
+def processOneVertebra(pathCompleteVertebra, pathToPartialPCD, nrPointsProPartialPC=2048,
                        nrPointsProCompletePC=4098,
                        visualize=False):
     """
@@ -43,55 +43,40 @@ def processOneVertebra(pathCompleteVertebra, pathToRootPartialPCD, nrPartialPCDP
     # sample complete vertebra with the poisson disk sampling technique
     pointCloudComplete = o3d.geometry.TriangleMesh.sample_points_poisson_disk(completeVertebra, nrPointsProCompletePC)
 
-    # iterate over all partial point clouds
-    crops = []
-    if (not os.path.isdir(pathToRootPartialPCD)):
-        print("Root folder to partial point clouds does not exist: " + str(pathToRootPartialPCD), file=sys.stderr)
-
-    partial_pcds_names = glob.glob(os.path.join(pathToRootPartialPCD, "*.pcd"))
-
-    # make sure that there are nrPartialPCDPerSample in all directories
-    if (len(partial_pcds_names) != nrPartialPCDPerSample):
-        print("Insufficient partial pointclouds for this vertebra", file=sys.stderr)
-        return
-
     # visualize complete vertebra
     if (visualize):
         o3d.visualization.draw([pointCloudComplete])
 
     # iterate over partial point clouds
-    for partial_pcd_name in partial_pcds_names:
-        # load each one
-        partial_pcd = o3d.io.read_point_cloud(os.path.join(pathToRootPartialPCD, partial_pcd_name))
 
-        # scale it down
-        partial_pcd.scale(scale_factor, partial_pcd.get_center())
+    # load partial point cloud
+    partial_pcd = o3d.io.read_point_cloud(pathToPartialPCD)
 
-        partial_pcd.points = o3d.utility.Vector3dVector(partial_pcd.points - partial_pcd.get_center())
+    # scale it down
+    partial_pcd.scale(scale_factor, partial_pcd.get_center())
+
+    partial_pcd.points = o3d.utility.Vector3dVector(partial_pcd.points - partial_pcd.get_center())
 
 
-        # sample with Farthest Point Sample 2048 points
-        try:
-            sampled_partial_pcd = partial_pcd.farthest_point_down_sample(nrPointsProPartialPC)
-        except:
-            print("PCD with less than " + str(nrPointsProPartialPC) + "points" + partial_pcd_name)
-            return 0, []
+    # sample with Farthest Point Sample 2048 points
+    try:
+        sampled_partial_pcd = partial_pcd.farthest_point_down_sample(nrPointsProPartialPC)
+    except:
+        print("PCD with less than " + str(nrPointsProPartialPC) + "points" + str(os.path.basename(pathToPartialPCD)))
+        return 0, []
 
-        # add them to the list of partial pointclouds
-        # duplicate number of points
-        #crop = np.repeat(np.asarray(sampled_partial_pcd.points), repeats=2, axis=0)
-        crop = np.asarray(sampled_partial_pcd.points)
-        crops.append(crop)
+    # visualize the subsampling (on the left the partial point cloud, on the right the FPS sampled point cloud)
+    if (visualize):
+        # translate the subsampled point cloud to avoid overlap during visualization
+        print("Visualizing initial partial pointcloud and the sampled one")
+        sampled_partial_pcd_translated = o3d.geometry.PointCloud.translate(sampled_partial_pcd,
+                                                                           np.asarray([1.5, 0, 0]))
+        o3d.visualization.draw([partial_pcd, sampled_partial_pcd_translated])
 
-        # visualize the subsampling (on the left the partial point cloud, on the right the FPS sampled point cloud)
-        if (visualize):
-            # translate the subsampled point cloud to avoid overlap during visualization
-            print("Visualizing initial partial pointcloud and the sampled one")
-            sampled_partial_pcd_translated = o3d.geometry.PointCloud.translate(sampled_partial_pcd,
-                                                                               np.asarray([1.5, 0, 0]))
-            o3d.visualization.draw([partial_pcd, sampled_partial_pcd_translated])
+    partial_pcds = []
+    partial_pcds.append(np.asarray(sampled_partial_pcd.points))
 
-    return np.asarray(pointCloudComplete.points), crops
+    return np.asarray(pointCloudComplete.points), partial_pcds
 
 
 def extractLabel(nameVertebra):
@@ -124,7 +109,7 @@ def saveToH5(fileName, stackedCropped, stackedComplete, labels, nrSamplesPerClas
 
 
 def processAllVertebrae(list_path, rootDirectoryVertebrae, saveTo,
-                        nrPartialPCDPerSample=16, visualize=False, nrPointsProPartialPC=2048,
+                        nr_deform_per_sample, visualize=False, nrPointsProPartialPC=2048,
                         nrPointsProCompletePC=4098):
     # prepare lists for storing all vertebrae
     labels = []
@@ -143,43 +128,41 @@ def processAllVertebrae(list_path, rootDirectoryVertebrae, saveTo,
 
     # iterate over the vertebrae names
     for model_id in model_list:
-        print(str(idx) + "/" + str(len(model_list)))
+        for deform in range(nr_deform_per_sample):
+            print("Processing " + str(model_id) + " deformation: " + str(deform))
+            print(str(idx) + "/" + str(len(model_list) * nr_deform_per_sample))
 
-        # obtain the path to the complete vertebra and to the root of the partial point clouds
-        # TODO after we figure it out with the deformation, change here and read the centered and scaled mesh
-        unique_identifier_mesh_vertebra = "*verLev*" + "*deformed*" "*.obj"
-        paths = glob.glob(os.path.join(rootDirectoryVertebrae, model_id, unique_identifier_mesh_vertebra))
+            # obtain the path to the complete vertebra and to the root of the partial point clouds
+            unique_identifier_mesh_vertebra = "*verLev*" + "*forces*" + str(deform) + "*deformed*" "*.obj"
+            paths = glob.glob(os.path.join(rootDirectoryVertebrae, model_id, unique_identifier_mesh_vertebra))
+            # make sure not to accidentally select the scaled ones
+            model_path  = [path for path in paths if 'scaled' not in os.path.basename(path)][0]
 
-        # make sure not to accidentally select the scaled ones
-        model_path  = [path for path in paths if 'scaled' not in os.path.basename(path)][0]
+            unique_identifier_partial_pcd = "*verLev*" + "*forces*" + str(deform) + "*deformed*" "*.pcd"
+            partial_model_path =  glob.glob(os.path.join(rootDirectoryVertebrae, model_id, unique_identifier_partial_pcd))[0]
 
-        partial_models_root = os.path.dirname(model_path)
+            #  process each vertebra individually
+            #try:
+            complete_pcd, partial_pcds = processOneVertebra(pathCompleteVertebra=model_path,
+                                                            pathToPartialPCD=partial_model_path,
+                                                            visualize=visualize,
+                                                            nrPointsProPartialPC=nrPointsProPartialPC,
+                                                            nrPointsProCompletePC=nrPointsProCompletePC)
 
-        #  process each vertebra individually
-        #try:
-        complete_pcd, partial_pcds = processOneVertebra(pathCompleteVertebra=model_path,
-                                                        pathToRootPartialPCD=partial_models_root,
-                                                        visualize=visualize,
-                                                        nrPartialPCDPerSample=nrPartialPCDPerSample,
-                                                        nrPointsProPartialPC=nrPointsProPartialPC,
-                                                        nrPointsProCompletePC=nrPointsProCompletePC)
-        #except:
-        #    print("Something went wrong with the processing")
-        #    continue
 
-        # in case at least one of the partial point clouds had less than 2048 points then return an empty list as partial_pcds
-        if len(partial_pcds) == 0:
-            continue
+            # if the partial point cloud has less than nrPointsProPartialPC then partial_pcds will be an empty list
+            if len(partial_pcds) == 0:
+                continue
 
-        # add it to h5py
-        # make sure that the smallest label will be 0
-        label_normalized = extractLabel(model_id) - min_label
-        complete_pcds_all_vertebrae.append(complete_pcd)
-        partial_pcds_all_vertebrae.extend(partial_pcds)
+            # add it to h5py
+            # make sure that the smallest label will be 0
+            label_normalized = extractLabel(model_id) - min_label
+            complete_pcds_all_vertebrae.append(complete_pcd)
+            partial_pcds_all_vertebrae.extend(partial_pcds)
 
-        # size of labels = size of all_partial_pcds
-        labels.extend([label_normalized for j in range(0, nrPartialPCDPerSample)])
-        idx += 1
+            # size of labels = size of all_partial_pcds
+            labels.extend([label_normalized for j in range(0, 1)])
+            idx += 1
 
     # stack the results
     stacked_partial_pcds = np.stack(partial_pcds_all_vertebrae, axis=0)
@@ -192,7 +175,7 @@ def processAllVertebrae(list_path, rootDirectoryVertebrae, saveTo,
     print("Shape of labels" + str(labels_array.shape))
 
     saveToH5(saveTo, stackedCropped=stacked_partial_pcds, stackedComplete=stacked_complete_pcds,
-             labels=labels_array, nrSamplesPerClass=nrPartialPCDPerSample)
+             labels=labels_array, nrSamplesPerClass=1)
 
 
 if __name__ == "__main__":
@@ -217,18 +200,18 @@ if __name__ == "__main__":
         dest="result_h5_file",
         help="Path to the h5 file where the dataset will be saved"
     )
-    arg_parser.add_argument(
-        "--nr_partial_pcds_per_sample",
-        required=True,
-        dest="nr_partial_pcds_per_sample",
-        help="Number of partial point clouds per sample. This should correspond to the number that has been generated by the rendering script"
-    )
 
+    arg_parser.add_argument(
+        "--nr_deform_per_sample",
+        required=True,
+        dest="nr_deform_per_sample",
+        help="Number of deformations for one spine."
+    )
     arg_parser.add_argument(
         "--nr_points_per_point_cloud",
         required=True,
         dest="nr_points_per_point_cloud",
-        help="Number of points per point cloud. This number is used for the sampling technique."
+        help="Number of points that will be sampled both from the partial point cloud and from the complete mesh"
     )
 
     arg_parser.add_argument(
@@ -244,7 +227,7 @@ if __name__ == "__main__":
     processAllVertebrae(list_path=args.vertebrae_list,
                         rootDirectoryVertebrae=args.folder_complete_meshes,
                         saveTo=args.result_h5_file,
-                        nrPartialPCDPerSample=int(args.nr_partial_pcds_per_sample),
+                        nr_deform_per_sample=int(args.nr_deform_per_sample),
                         visualize=args.visualize_vertebrae,
                         nrPointsProPartialPC=int(args.nr_points_per_point_cloud),
                         nrPointsProCompletePC=int(args.nr_points_per_point_cloud),

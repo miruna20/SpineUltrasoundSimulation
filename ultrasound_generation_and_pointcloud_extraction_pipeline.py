@@ -141,7 +141,8 @@ if __name__ == '__main__':
     if 'raycast' in pipeline or 'all' in pipeline:
         subprocess.run(['python', 'raycast_bmode_data.py',
                         '--list_file_names', txt_file_lumbar_spines,
-                        '--root_path_spines', root_path_spines])
+                        '--root_path_spines', root_path_spines,
+                        '--nr_deform_per_spine', nr_deform_per_spine])
 
     if 'extract_pcd' in pipeline or 'all' in pipeline:
         subprocess.run(['python', 'extract_pcd_from_US_labelmaps.py',
@@ -168,5 +169,5 @@ if __name__ == '__main__':
                         '--vertebrae_list', txt_file_lumbar_vertebrae,
                         '--root_path_vertebrae', root_path_vertebrae,
                         '--result_h5_file', result_h5_file,
-                        '--nr_partial_pcds_per_sample', nr_deform_per_spine,
+                        '--nr_deform_per_sample', nr_deform_per_spine,
                         '--nr_points_per_point_cloud', nr_points_per_point_cloud])

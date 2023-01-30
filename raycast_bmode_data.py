@@ -38,6 +38,13 @@ if __name__ == "__main__":
         help="Root path to the spine folders."
     )
 
+    arg_parser.add_argument(
+        "--nr_deform_per_spine",
+        required=True,
+        dest="nr_deform_per_spine",
+        help="Number of deformations per spine"
+    )
+
     args = arg_parser.parse_args()
     print("Raycast the US labelmaps to resemble US segmentations")
 
@@ -46,26 +53,28 @@ if __name__ == "__main__":
         spine_ids = [line.strip() for line in file]
 
     for spine_id in spine_ids:
-        print("Raycasting: " + str(spine_id) )
-        look_for = "**/*" + '*Images*' + '.png'
-        filenames_labels = sorted(glob.glob(os.path.join(args.root_path_spines, spine_id, look_for), recursive=True))
+        for deform in range(int(args.nr_deform_per_spine)):
 
-        if (len(filenames_labels) == 0):
-            print("No labelmaps where found for spine: " + str(spine_id), file=sys.stderr)
-            continue
+            print("Raycasting: " + str(spine_id) + " and deformation " + str(deform) )
+            look_for = "**/*" + '*Images*' + '.png'
+            filenames_labels = sorted(glob.glob(os.path.join(args.root_path_spines, spine_id, "labels_force" + str(deform), look_for), recursive=True))
 
-        dir_save_path = os.path.join(os.path.dirname(filenames_labels[0]), "raycasted")
-        if(not os.path.exists(dir_save_path)):
-            os.mkdir(dir_save_path)
+            if (len(filenames_labels) == 0):
+                print("No labelmaps where found for spine: " + str(spine_id), file=sys.stderr)
+                continue
 
-        for filename_label in filenames_labels:
-            label = np.array(Image.open(filename_label))
-            ray_casted_labels = ray_cast_image(label)
+            dir_save_path = os.path.join(os.path.dirname(filenames_labels[0]), "raycasted")
+            if(not os.path.exists(dir_save_path)):
+                os.mkdir(dir_save_path)
 
-            ray_casted_labels = cv2.dilate(ray_casted_labels, np.ones((3, 3)), iterations=1)
+            for filename_label in filenames_labels:
+                label = np.array(Image.open(filename_label))
+                ray_casted_labels = ray_cast_image(label)
 
-            label_name = os.path.basename(filename_label)
-            image_save_path = os.path.join(dir_save_path, label_name.replace('.png','_raycasted.png'))
+                ray_casted_labels = cv2.dilate(ray_casted_labels, np.ones((3, 3)), iterations=1)
 
-            Image.fromarray(ray_casted_labels).save(image_save_path)
+                label_name = os.path.basename(filename_label)
+                image_save_path = os.path.join(dir_save_path, label_name.replace('.png','_raycasted.png'))
+
+                Image.fromarray(ray_casted_labels).save(image_save_path)
 
