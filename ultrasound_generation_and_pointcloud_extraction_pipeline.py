@@ -3,7 +3,7 @@ import argparse
 
 if __name__ == '__main__':
     """
-    Pipeline for ultrasound generation and partial point cloud extraction
+    Pipeline for ultrasound generation, partial point cloud extraction and dataset creation for shape completion
     1. Automatically generate transducer splines and direction splines for each deformed spine. 
     These are further used in the ultrasound simulation --> generate_splines.py
     2. Use imfusion workspace file to simulate ultrasound and segment the bone -->  simulate_US_and_save_segmentations.py
@@ -23,6 +23,8 @@ if __name__ == '__main__':
         3.4 Extract point cloud from mesh and export it 
     5. Separate the point cloud of the spine into individual pointclouds of vertebrae. These will be used as partial 
     point clouds for the completion --> separate_spine_pc_into_vertebrae.py
+    6. Get a list of all of the lumbar vertebrae for which poinclouds are available 
+    7. Combine pairs of complete and incomplete pointclouds in h5 dataset that will be used for the VRCNet for shape completion
     """
 
     arg_parser = argparse.ArgumentParser(description="Pipeline of ultrasound simulation and point cloud extraction")
@@ -42,11 +44,18 @@ if __name__ == '__main__':
     )
 
     arg_parser.add_argument(
-        "--list_file_names",
+        "--list_file_names_spines",
         required=True,
-        dest="txt_file",
+        dest="txt_file_spines",
+        help="Txt file that contains all spines that contain all lumbar spines"
+    )
+    arg_parser.add_argument(
+        "--list_file_names_vertebrae",
+        required=True,
+        dest="txt_file_vertebrae",
         help="Txt file that contains all spines that contain all lumbar vertebrae"
     )
+
 
     arg_parser.add_argument(
         "--path_splinedata",
@@ -76,6 +85,20 @@ if __name__ == '__main__':
     )
 
     arg_parser.add_argument(
+        "--result_h5_file",
+        required=True,
+        dest="result_h5_file",
+        help="Path to the h5 file where the dataset will be saved"
+    )
+
+    arg_parser.add_argument(
+        "--nr_points_per_point_cloud",
+        required=True,
+        dest="nr_points_per_point_cloud",
+        help="Number of points per point cloud. This number is used for the sampling technique."
+    )
+
+    arg_parser.add_argument(
         "--pipeline",
         nargs='+',
         default=['all'],
@@ -87,12 +110,16 @@ if __name__ == '__main__':
     root_path_spines = args.root_path_spines
     root_path_vertebrae = args.root_path_vertebrae
 
-    txt_file_lumbar_spines = args.txt_file
+    txt_file_lumbar_spines = args.txt_file_spines
+    txt_file_lumbar_vertebrae = args.txt_file_vertebrae
     path_splinedata = args.splinedata
     nr_deform_per_spine = args.nr_deform_per_spine
 
     workspace_file_simulate_us = args.workspace_file_simulate_us
     workspace_file_extract_pointcloud = args.workspace_file_extract_pointcloud
+
+    result_h5_file = args.result_h5_file
+    nr_points_per_point_cloud = args.nr_points_per_point_cloud
 
     pipeline = args.pipeline
 
@@ -131,10 +158,15 @@ if __name__ == '__main__':
                         '--nr_deform_per_spine', nr_deform_per_spine
                         ])
 
+    if 'get_list_of_vertebrae_in_folder' in pipeline or 'all' in pipeline:
+        subprocess.run(['python', 'get_list_of_vertebrae_in_folder.py',
+                        '--root_path_vertebrae', root_path_vertebrae,
+                        '--list_file_names', txt_file_lumbar_vertebrae])
 
-
-
-
-
-
-
+    if 'create_dataset' in pipeline or 'all' in pipeline:
+        subprocess.run(['python', 'create_dataset_for_shape_completion.py',
+                        '--vertebrae_list', txt_file_lumbar_vertebrae,
+                        '--root_path_vertebrae', root_path_vertebrae,
+                        '--result_h5_file', result_h5_file,
+                        '--nr_partial_pcds_per_sample', nr_deform_per_spine,
+                        '--nr_points_per_point_cloud', nr_points_per_point_cloud])

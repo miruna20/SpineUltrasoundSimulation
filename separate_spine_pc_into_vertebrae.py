@@ -102,6 +102,11 @@ def separate_US_pointcloud_into_vertebrae(root_path_spine, root_path_vertebrae, 
             bounding_box_curr_vert, spine_pcd.points)
         curr_vert_points = np.asarray(spine_pcd.points)[indices_from_vert_within_bb]
 
+        # align the pointcloud so that the centroid of the current vert is at the origin. This will later ensure
+        # that the point cloud and the vertebrae are aligned for the shape completion dataset
+        centroid_centered = curr_vert.get_center() - spine_translation_to_center
+        curr_vert_points = curr_vert_points - centroid_centered
+
         # write points belonging to the curr vert to a new point cloud
         curr_vert_pcd = o3d.geometry.PointCloud()
         curr_vert_pcd.points = o3d.utility.Vector3dVector(curr_vert_points)

@@ -6,3 +6,7 @@ runSofa.ini
 *.txt
 *.json
 *.nii.gz
+linear_probe_mehrdad_US_simulations/
+Merge_labelmapsMultipleTissue_with_labelMapBone
+US_simulation_visualizations
+splines.csv
