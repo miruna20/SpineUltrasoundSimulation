@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import glob
 import sys
+import shutil
 
 
 # Credits to Jane at https://github.com/lameski123/thesis/blob/main/processing_scripts/ray_cast_bmode_data.py
@@ -55,6 +56,11 @@ if __name__ == "__main__":
     for spine_id in spine_ids:
         for deform in range(int(args.nr_deform_per_spine)):
 
+            dir_save_path = os.path.join(args.root_path_spines,spine_id, "labels_force" + str(deform), "raycasted")
+            if os.path.exists(dir_save_path):
+                shutil.rmtree(dir_save_path)
+            os.makedirs(dir_save_path)
+
             print("Raycasting: " + str(spine_id) + " and deformation " + str(deform) )
             look_for = "**/*" + '*Images*' + '.png'
             filenames_labels = sorted(glob.glob(os.path.join(args.root_path_spines, spine_id, "labels_force" + str(deform), look_for), recursive=True))
@@ -62,10 +68,6 @@ if __name__ == "__main__":
             if (len(filenames_labels) == 0):
                 print("No labelmaps where found for spine: " + str(spine_id), file=sys.stderr)
                 continue
-
-            dir_save_path = os.path.join(os.path.dirname(filenames_labels[0]), "raycasted")
-            if(not os.path.exists(dir_save_path)):
-                os.mkdir(dir_save_path)
 
             for filename_label in filenames_labels:
                 label = np.array(Image.open(filename_label))

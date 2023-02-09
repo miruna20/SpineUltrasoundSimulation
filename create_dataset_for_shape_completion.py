@@ -28,49 +28,35 @@ def processOneVertebra(pathCompleteVertebra, pathToPartialPCD, nrPointsProPartia
 
     print("Processing: " + pathCompleteVertebra)
 
-    # load complete vertebra
+    # load complete vertebra and its partial point cloud
     completeVertebra = o3d.io.read_triangle_mesh(pathCompleteVertebra)
+    partial_pcd = o3d.io.read_point_cloud(pathToPartialPCD)
 
-    # center vertebra
-    completeVertebra.vertices = o3d.utility.Vector3dVector(completeVertebra.vertices - completeVertebra.get_center())
-
-    # scale it down
+    #scale down
     completeVertebra.scale(scale_factor, completeVertebra.get_center())
+    partial_pcd.scale(scale_factor, completeVertebra.get_center())
 
-    completeVertebra.vertices = o3d.utility.Vector3dVector(completeVertebra.vertices - completeVertebra.get_center())
-
+    #center
+    #completeVertebra.vertices = o3d.utility.Vector3dVector(completeVertebra.vertices - completeVertebra.get_center())
+    #partial_pcd.points = o3d.utility.Vector3dVector(partial_pcd.points - partial_pcd.get_center())
 
     # sample complete vertebra with the poisson disk sampling technique
     pointCloudComplete = o3d.geometry.TriangleMesh.sample_points_poisson_disk(completeVertebra, nrPointsProCompletePC)
-
-    # visualize complete vertebra
-    if (visualize):
-        o3d.visualization.draw([pointCloudComplete])
-
-    # iterate over partial point clouds
-
-    # load partial point cloud
-    partial_pcd = o3d.io.read_point_cloud(pathToPartialPCD)
-
-    # scale it down
-    partial_pcd.scale(scale_factor, partial_pcd.get_center())
-
-    partial_pcd.points = o3d.utility.Vector3dVector(partial_pcd.points - partial_pcd.get_center())
-
-
-    # sample with Farthest Point Sample 2048 points
+    # sample partial point cloud Farthest Point Sample 2048 points
     try:
         sampled_partial_pcd = partial_pcd.farthest_point_down_sample(nrPointsProPartialPC)
     except:
         print("PCD with less than " + str(nrPointsProPartialPC) + "points" + str(os.path.basename(pathToPartialPCD)))
         return 0, []
 
-    # visualize the subsampling (on the left the partial point cloud, on the right the FPS sampled point cloud)
     if (visualize):
-        # translate the subsampled point cloud to avoid overlap during visualization
+        print("Visualizing input and ground truth after scaling")
+        pointCloudComplete.paint_uniform_color([0,1,0])
+        partial_pcd.paint_uniform_color([0,0,1])
+        o3d.visualization.draw([pointCloudComplete, partial_pcd])
+
         print("Visualizing initial partial pointcloud and the sampled one")
-        sampled_partial_pcd_translated = o3d.geometry.PointCloud.translate(sampled_partial_pcd,
-                                                                           np.asarray([1.5, 0, 0]))
+        sampled_partial_pcd_translated = o3d.geometry.PointCloud.translate(sampled_partial_pcd,np.asarray([1.5, 0, 0]))
         o3d.visualization.draw([partial_pcd, sampled_partial_pcd_translated])
 
     partial_pcds = []
@@ -133,12 +119,12 @@ def processAllVertebrae(list_path, rootDirectoryVertebrae, saveTo,
             print(str(idx) + "/" + str(len(model_list) * nr_deform_per_sample))
 
             # obtain the path to the complete vertebra and to the root of the partial point clouds
-            unique_identifier_mesh_vertebra = "*verLev*" + "*forces*" + str(deform) + "*deformed*" "*.obj"
+            unique_identifier_mesh_vertebra = "*verLev*" + "*forces*" + str(deform) + "*_deformed_centered*" "*.obj"
             paths = glob.glob(os.path.join(rootDirectoryVertebrae, model_id, unique_identifier_mesh_vertebra))
             # make sure not to accidentally select the scaled ones
             model_path  = [path for path in paths if 'scaled' not in os.path.basename(path)][0]
 
-            unique_identifier_partial_pcd = "*verLev*" + "*forces*" + str(deform) + "*deformed*" "*.pcd"
+            unique_identifier_partial_pcd = "*verLev*" + "*forces*" + str(deform) + "*deformed*" + "*centered*" +  "*.pcd"
             partial_model_path =  glob.glob(os.path.join(rootDirectoryVertebrae, model_id, unique_identifier_partial_pcd))[0]
 
             #  process each vertebra individually

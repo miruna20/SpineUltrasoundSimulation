@@ -83,6 +83,12 @@ if __name__ == '__main__':
         dest="workspace_file_extract_pointcloud",
         help="ImFusion workspace file that extracts the point cloud from an ultrasound segmentation"
     )
+    arg_parser.add_argument(
+        "--workspace_file_align_pcd_to_mesh",
+        required=True,
+        dest="workspace_file_align_pcd_to_mesh",
+        help="ImFusion workspace file that aligns the point cloud to the spine mesh"
+    )
 
     arg_parser.add_argument(
         "--result_h5_file",
@@ -117,6 +123,7 @@ if __name__ == '__main__':
 
     workspace_file_simulate_us = args.workspace_file_simulate_us
     workspace_file_extract_pointcloud = args.workspace_file_extract_pointcloud
+    workspace_file_align_pcd_to_mesh = args.workspace_file_align_pcd_to_mesh
 
     result_h5_file = args.result_h5_file
     nr_points_per_point_cloud = args.nr_points_per_point_cloud
@@ -148,6 +155,13 @@ if __name__ == '__main__':
         subprocess.run(['python', 'extract_pcd_from_US_labelmaps.py',
                         '--list_file_names', txt_file_lumbar_spines,
                         '--workspace_file',  workspace_file_extract_pointcloud,
+                        '--root_path_spines', root_path_spines,
+                        '--nr_deform_per_spine', nr_deform_per_spine])
+
+    if 'align_pcd_to_mesh' in pipeline or 'all' in pipeline:
+        subprocess.run(['python', 'align_pcd_to_mesh.py',
+                        '--list_file_names', txt_file_lumbar_spines,
+                        '--workspace_file', workspace_file_align_pcd_to_mesh,
                         '--root_path_spines', root_path_spines,
                         '--nr_deform_per_spine', nr_deform_per_spine])
 

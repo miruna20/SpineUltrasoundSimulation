@@ -6,32 +6,17 @@ import glob
 import os
 import sys
 
-
 # Algorithm:
-# 1. load the merged, uncentered, deformed spine and its original unmerged, uncentered, deformed vertebrae
-# 2. for each spine compute the translation that was needed to move the spine to center
-# 3. for each individual vertebra from this spine before merging together
+# 1. Load the individual vertebrae
+# 2. for each individual vertebra
     # get the bounding box
-    # translate this box to the current position of the spine (by the translation computed in step 2)
     # increase the box size slightly in x direction
     # save as pointcloud all of the points within this bounding box
 
-def load_uncentered_deformed_spine(root_path_spine, spine_id, deform):
-    look_for = "**/*" + str(spine_id) + "*forcefield*" + str(deform) + '*deformed.obj'
-    path_spine = glob.glob(os.path.join(root_path_spine, look_for), recursive=True)
 
-    if (len(path_spine) != 1):
-        print("More than 1 or no mesh found for spine " + str(spine_id), file=sys.stderr)
-
-    spine_mesh = o3d.io.read_triangle_mesh(path_spine[0])
-
-    return spine_mesh
-
-def load_unmerged_uncentered_deformed_vertebrae(root_path_vertebrae, spine_id, deform):
-    look_for = "**/*" + str(spine_id) + "*forces*" + str(deform) + "*deformed*" + '*.obj'
+def load_unmerged_centered_deformed_vertebrae(root_path_vertebrae, spine_id, deform):
+    look_for = "**/*" + str(spine_id) + "*forces*" + str(deform) + "*deformed*" + "*centered*" + '*.obj'
     paths_vertebrae = sorted(glob.glob(os.path.join(root_path_vertebrae, look_for), recursive=True))
-
-    paths_vertebrae = [path for path in paths_vertebrae if 'scaled' not in os.path.basename(path)]
 
     if (len(paths_vertebrae) != 5):
         print("More or less than 5 vertebrae found for " + str(spine_id), file=sys.stderr)
@@ -43,7 +28,7 @@ def load_unmerged_uncentered_deformed_vertebrae(root_path_vertebrae, spine_id, d
     return vertebrae_meshes, paths_vertebrae
 
 def load_pcd(root_path_spine, spine_id, deform):
-    look_for = "**/*" + str(spine_id) + "*force*" + str(deform) + '*.pcd'
+    look_for = "**/*" + str(spine_id) + "*force*" + str(deform) + "*aligned*" +  '*.pcd'
     path_pcd = glob.glob(os.path.join(root_path_spine, look_for), recursive=True)
 
     if (len(path_pcd) != 1):
@@ -57,19 +42,13 @@ def load_pcd(root_path_spine, spine_id, deform):
 def separate_US_pointcloud_into_vertebrae(root_path_spine, root_path_vertebrae, spine_id, deform,visualize=False):
     print("Separating US point cloud from: " + str(spine_id) + " and deformation " + str(deform))
 
-    #  load the merged, uncentered, deformed spine
-    spine_mesh = load_uncentered_deformed_spine(root_path_spine, spine_id, deform)
-
-    #  its original unmerged, uncentered, deformed vertebrae
-    vertebrae_meshes, vertebrae_paths = load_unmerged_uncentered_deformed_vertebrae(root_path_vertebrae, spine_id, deform)
+    #  its original unmerged, centered as a whole spine, deformed vertebrae
+    vertebrae_meshes, vertebrae_paths = load_unmerged_centered_deformed_vertebrae(root_path_vertebrae, spine_id, deform)
 
     # load the point cloud
     spine_pcd = load_pcd(root_path_spine, spine_id, deform)
 
-    #  for the current spine compute the translation that was needed to move the spine to center
-    spine_translation_to_center = spine_mesh.get_center()
-
-    # for each individual vertebra from this spine before merging
+    # for each individual vertebra
     for vert_ind in range(5):
 
         curr_vert = vertebrae_meshes[vert_ind]
@@ -81,17 +60,13 @@ def separate_US_pointcloud_into_vertebrae(root_path_spine, root_path_vertebrae, 
         corner_points = bounding_box_current_vert.get_box_points()
 
         new_corner_points = []
-        # center the corner points of the bounding box
         for corner_point in corner_points:
-            new_point = [corner_point[0]-spine_translation_to_center[0], corner_point[1]-spine_translation_to_center[1],
-                         corner_point[2]-spine_translation_to_center[2]]
-
             # increase the box size slightly in x direction
-            if(new_point[0] < 0):
-                new_point[0] -=20
-            elif(new_point[0] > 0):
-                new_point[0] +=20
-            new_corner_points.append(new_point)
+            if(corner_point[0] < 0):
+                corner_point[0] -=20
+            elif(corner_point[0] > 0):
+                corner_point[0] +=20
+            new_corner_points.append(corner_point)
 
         # create a new bounding box from the new points
         points_to_create_bb_vect = o3d.utility.Vector3dVector(np.asarray(new_corner_points))
@@ -102,11 +77,6 @@ def separate_US_pointcloud_into_vertebrae(root_path_spine, root_path_vertebrae, 
             bounding_box_curr_vert, spine_pcd.points)
         curr_vert_points = np.asarray(spine_pcd.points)[indices_from_vert_within_bb]
 
-        # align the pointcloud so that the centroid of the current vert is at the origin. This will later ensure
-        # that the point cloud and the vertebrae are aligned for the shape completion dataset
-        centroid_centered = curr_vert.get_center() - spine_translation_to_center
-        curr_vert_points = curr_vert_points - centroid_centered
-
         # write points belonging to the curr vert to a new point cloud
         curr_vert_pcd = o3d.geometry.PointCloud()
         curr_vert_pcd.points = o3d.utility.Vector3dVector(curr_vert_points)
@@ -115,7 +85,8 @@ def separate_US_pointcloud_into_vertebrae(root_path_spine, root_path_vertebrae, 
         o3d.io.write_point_cloud(vertebrae_paths[vert_ind].replace('.obj','.pcd'), curr_vert_pcd)
 
         if(visualize):
-            o3d.visualization.draw([spine_pcd, bounding_box_curr_vert])
+            curr_vert.paint_uniform_color([1,0,0])
+            o3d.visualization.draw([curr_vert,spine_pcd, bounding_box_curr_vert])
 
 
 if __name__ == "__main__":

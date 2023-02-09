@@ -119,7 +119,6 @@
 			<param name="topDown">1</param>
 			<param name="uid">data2</param>
 			<param name="name">Ultrasound Volume</param>
-			<param name="transformation">0 0.014845214821716 -0.999889803726839 2.36533223924131 0 -0.999889803726839 -0.014845214821716 -20.9757609116491 -1 0 0 2.92845153809 0 0 0 1 </param>
 			<property name="Components">
 				<property name="DisplayOptions2d">
 					<param name="gamma">1</param>
@@ -173,12 +172,10 @@
 		<property name="Data">
 			<param name="uid">data3</param>
 			<param name="name">Ultrasound Volume Mesh</param>
-			<param name="transformation">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 </param>
 		</property>
 		<property name="Data">
 			<param name="uid">data4</param>
 			<param name="name">Ultrasound Volume Mesh Point Cloud</param>
-			<param name="transformation">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 </param>
 		</property>
 	</property>
 	<property name="Interface">
