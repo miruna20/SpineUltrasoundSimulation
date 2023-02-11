@@ -65,7 +65,7 @@ if __name__ == "__main__":
             filenames = sorted(
                 glob.glob(os.path.join(args.root_path_spines, look_for), recursive=True))
             if (len(filenames) != 1):
-                print("More or less than 1 spine found for " + str(spine_id) + " and deform " + str(deform),
+                print(str(len(filenames)) + " spines found for " + str(spine_id) + " and deform " + str(deform),
                       file=sys.stderr)
                 continue
 

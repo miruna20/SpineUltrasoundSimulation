@@ -176,7 +176,9 @@ if __name__ == '__main__':
     if 'get_list_of_vertebrae_in_folder' in pipeline or 'all' in pipeline:
         subprocess.run(['python', 'get_list_of_vertebrae_in_folder.py',
                         '--root_path_vertebrae', root_path_vertebrae,
-                        '--list_file_names', txt_file_lumbar_vertebrae])
+                        '--list_file_names', txt_file_lumbar_vertebrae,
+                        '--nr_deform_per_spine', nr_deform_per_spine,
+                        '--list_file_names_spines', txt_file_lumbar_spines])
 
     if 'create_dataset' in pipeline or 'all' in pipeline:
         subprocess.run(['python', 'create_dataset_for_shape_completion.py',

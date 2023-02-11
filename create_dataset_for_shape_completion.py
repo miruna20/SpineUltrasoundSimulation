@@ -83,12 +83,13 @@ def computeNrPerClass(labels, nrSamplesPerClass=16):
     return np.asarray(nr_samples_per_class_as_list)
 
 
-def saveToH5(fileName, stackedCropped, stackedComplete, labels, nrSamplesPerClass=16):
+def saveToH5(fileName, stackedCropped, stackedComplete, labels,datasets_ids, nrSamplesPerClass=16):
     # save the dataset in a .h5 file for VRCNet
     vertebrae_file = h5py.File(fileName, "w")
     dset_incompletepcds = vertebrae_file.create_dataset("incomplete_pcds", data=stackedCropped)
     dset_completepcds = vertebrae_file.create_dataset("complete_pcds", data=stackedComplete)
     dset_labels = vertebrae_file.create_dataset("labels", data=labels)
+    dset_ids = vertebrae_file.create_dataset("datasets_ids", data=datasets_ids)
     number_per_class = computeNrPerClass(labels, nrSamplesPerClass)
     dset_number_per_class = vertebrae_file.create_dataset("number_per_class", data=number_per_class)
     print("Number_per_class" + str(number_per_class))
@@ -101,6 +102,7 @@ def processAllVertebrae(list_path, rootDirectoryVertebrae, saveTo,
     labels = []
     complete_pcds_all_vertebrae = []
     partial_pcds_all_vertebrae = []
+    dataset_ids = []
 
     # create a list with all vertebrae names
     with open(os.path.join(list_path)) as file:
@@ -128,7 +130,6 @@ def processAllVertebrae(list_path, rootDirectoryVertebrae, saveTo,
             partial_model_path =  glob.glob(os.path.join(rootDirectoryVertebrae, model_id, unique_identifier_partial_pcd))[0]
 
             #  process each vertebra individually
-            #try:
             complete_pcd, partial_pcds = processOneVertebra(pathCompleteVertebra=model_path,
                                                             pathToPartialPCD=partial_model_path,
                                                             visualize=visualize,
@@ -145,6 +146,7 @@ def processAllVertebrae(list_path, rootDirectoryVertebrae, saveTo,
             label_normalized = extractLabel(model_id) - min_label
             complete_pcds_all_vertebrae.append(complete_pcd)
             partial_pcds_all_vertebrae.extend(partial_pcds)
+            dataset_ids.append((model_id + "_deform" + str(deform)).encode("ascii"))
 
             # size of labels = size of all_partial_pcds
             labels.extend([label_normalized for j in range(0, 1)])
@@ -153,6 +155,7 @@ def processAllVertebrae(list_path, rootDirectoryVertebrae, saveTo,
     # stack the results
     stacked_partial_pcds = np.stack(partial_pcds_all_vertebrae, axis=0)
     stacked_complete_pcds = np.stack(complete_pcds_all_vertebrae, axis=0)
+    stacked_dataset_ids = np.stack(dataset_ids,axis=0)
     labels_array = np.asarray(labels)
 
     # for debugging print the shape
@@ -161,7 +164,7 @@ def processAllVertebrae(list_path, rootDirectoryVertebrae, saveTo,
     print("Shape of labels" + str(labels_array.shape))
 
     saveToH5(saveTo, stackedCropped=stacked_partial_pcds, stackedComplete=stacked_complete_pcds,
-             labels=labels_array, nrSamplesPerClass=1)
+             labels=labels_array, datasets_ids=stacked_dataset_ids,  nrSamplesPerClass=1)
 
 
 if __name__ == "__main__":
