@@ -1,8 +1,0 @@
-Setup training subsample
---root_path_spines "/home/miruna20/Documents/Thesis/Dataset/VerSe2020/full_spines/subjectbased_structure/01_training"
---root_path_vertebrae "/home/miruna20/Documents/Thesis/SpineDeformation/vertebrae/train"
---list_file_names "/home/miruna20/Documents/Thesis/SpineDeformation/script/SpineDeformation/results/lumbar_spines_subsample.txt"
---path_splinedata "/home/miruna20/Documents/Thesis/UltrasoundSimulation/SpineUltrasoundSimulation/splines.csv"
---nr_deform_per_spine 1
---workspace_file_simulate_us simulate_US_and_save_segmentations.iws
---workspace_file_extract_pointcloud extract_pcd_from_US_labelmaps.iws

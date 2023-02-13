@@ -13,7 +13,7 @@ import glob
 scale_factor = 0.01
 
 def processOneVertebra(pathCompleteVertebra, pathToPartialPCD, nrPointsProPartialPC=2048,
-                       nrPointsProCompletePC=4098,
+                       nrPointsProCompletePC=4096,
                        visualize=False):
     """
 

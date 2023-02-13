@@ -3,7 +3,9 @@ import argparse
 
 if __name__ == '__main__':
     """
+    # TODO change here the steps in the description 
     Pipeline for ultrasound generation, partial point cloud extraction and dataset creation for shape completion
+    From this pipeline we obtain partial point clouds that only contains points from one single vertebra. 
     1. Automatically generate transducer splines and direction splines for each deformed spine. 
     These are further used in the ultrasound simulation --> generate_splines.py
     2. Use imfusion workspace file to simulate ultrasound and segment the bone -->  simulate_US_and_save_segmentations.py
@@ -89,7 +91,12 @@ if __name__ == '__main__':
         dest="workspace_file_align_pcd_to_mesh",
         help="ImFusion workspace file that aligns the point cloud to the spine mesh"
     )
-
+    arg_parser.add_argument(
+        "--workspace_file_obj_to_labelmap",
+        required=True,
+        dest="workspace_file_obj_to_labelmap",
+        help="ImFusion workspace files that has all of the necessary algo info to transform from object to labelmap"
+    )
     arg_parser.add_argument(
         "--result_h5_file",
         required=True,
@@ -124,11 +131,28 @@ if __name__ == '__main__':
     workspace_file_simulate_us = args.workspace_file_simulate_us
     workspace_file_extract_pointcloud = args.workspace_file_extract_pointcloud
     workspace_file_align_pcd_to_mesh = args.workspace_file_align_pcd_to_mesh
+    workspace_file_obj_to_labelmap = args.workspace_file_obj_to_labelmap
 
     result_h5_file = args.result_h5_file
     nr_points_per_point_cloud = args.nr_points_per_point_cloud
 
     pipeline = args.pipeline
+
+    # we want to get only points from one vertebrae
+
+    if 'vert_mesh_to_labelmap' in pipeline or 'all' in pipeline:
+        subprocess.run(['python', 'convert_vert_to_labelmap.py',
+                        '--list_file_names', txt_file_lumbar_spines,
+                        '--workspace_file', workspace_file_obj_to_labelmap,
+                        '--root_path_vertebrae', root_path_vertebrae,
+                        '--nr_deform_per_spine', nr_deform_per_spine])
+
+    # TODO then merge the labelmap into one
+    if 'merge_vert_labelmaps' in pipeline or 'all' in pipeline:
+        subprocess.run(['python', 'merge_vert_labelmaps.py',
+                        '--list_file_names', txt_file_lumbar_spines,
+                        '--root_path_vertebrae', root_path_vertebrae,
+                        '--nr_deform_per_spine', nr_deform_per_spine])
 
     if 'generate_splines' in pipeline or 'all' in pipeline:
         subprocess.run(['python', 'generate_splines.py',
@@ -151,13 +175,19 @@ if __name__ == '__main__':
                         '--root_path_spines', root_path_spines,
                         '--nr_deform_per_spine', nr_deform_per_spine])
 
+    # TODO extract pcds for each vertebra separately
+    """
     if 'extract_pcd' in pipeline or 'all' in pipeline:
-        subprocess.run(['python', 'extract_pcd_from_US_labelmaps.py',
-                        '--list_file_names', txt_file_lumbar_spines,
-                        '--workspace_file',  workspace_file_extract_pointcloud,
-                        '--root_path_spines', root_path_spines,
-                        '--nr_deform_per_spine', nr_deform_per_spine])
+    subprocess.run(['python', 'extract_pcd_from_US_labelmaps.py',
+                    '--list_file_names', txt_file_lumbar_spines,
+                    '--workspace_file',  workspace_file_extract_pointcloud,
+                    '--root_path_spines', root_path_spines,
+                    '--nr_deform_per_spine', nr_deform_per_spine])
 
+    """
+
+    # TODO align the vertebrae pcds with the vertebrae meshes
+    """
     if 'align_pcd_to_mesh' in pipeline or 'all' in pipeline:
         subprocess.run(['python', 'align_pcd_to_mesh.py',
                         '--list_file_names', txt_file_lumbar_spines,
@@ -165,13 +195,8 @@ if __name__ == '__main__':
                         '--root_path_spines', root_path_spines,
                         '--nr_deform_per_spine', nr_deform_per_spine])
 
-    if 'separate_spine_pc_into_vertebrae' in pipeline or 'all' in pipeline:
-        subprocess.run(['python', 'separate_spine_pc_into_vertebrae.py',
-                        '--list_file_names', txt_file_lumbar_spines,
-                        '--root_path_vertebrae', root_path_vertebrae,
-                        '--root_path_spines', root_path_spines,
-                        '--nr_deform_per_spine', nr_deform_per_spine
-                        ])
+    """
+
 
     if 'get_list_of_vertebrae_in_folder' in pipeline or 'all' in pipeline:
         subprocess.run(['python', 'get_list_of_vertebrae_in_folder.py',
