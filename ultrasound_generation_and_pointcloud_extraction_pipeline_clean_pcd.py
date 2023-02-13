@@ -98,6 +98,13 @@ if __name__ == '__main__':
         help="ImFusion workspace files that has all of the necessary algo info to transform from object to labelmap"
     )
     arg_parser.add_argument(
+        "--workspace_file_merge_labelmaps",
+        required=True,
+        dest="workspace_file_merge_labelmaps",
+        help="ImFusion workspace file that merges multiple vertebrae labelmaps into one"
+    )
+
+    arg_parser.add_argument(
         "--result_h5_file",
         required=True,
         dest="result_h5_file",
@@ -132,7 +139,7 @@ if __name__ == '__main__':
     workspace_file_extract_pointcloud = args.workspace_file_extract_pointcloud
     workspace_file_align_pcd_to_mesh = args.workspace_file_align_pcd_to_mesh
     workspace_file_obj_to_labelmap = args.workspace_file_obj_to_labelmap
-
+    workspace_file_merge_labelmaps = args.workspace_file_merge_labelmaps
     result_h5_file = args.result_h5_file
     nr_points_per_point_cloud = args.nr_points_per_point_cloud
 
@@ -147,12 +154,13 @@ if __name__ == '__main__':
                         '--root_path_vertebrae', root_path_vertebrae,
                         '--nr_deform_per_spine', nr_deform_per_spine])
 
-    # TODO then merge the labelmap into one
     if 'merge_vert_labelmaps' in pipeline or 'all' in pipeline:
         subprocess.run(['python', 'merge_vert_labelmaps.py',
                         '--list_file_names', txt_file_lumbar_spines,
                         '--root_path_vertebrae', root_path_vertebrae,
-                        '--nr_deform_per_spine', nr_deform_per_spine])
+                        '--root_path_spines', root_path_spines,
+                        '--nr_deform_per_spine', nr_deform_per_spine,
+                        '--workspace_file_merge_labelmaps', workspace_file_merge_labelmaps])
 
     if 'generate_splines' in pipeline or 'all' in pipeline:
         subprocess.run(['python', 'generate_splines.py',

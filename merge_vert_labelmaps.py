@@ -20,36 +20,6 @@ def get_vertebrae_labelmaps_deformed_centered_paths(vertebrae_dir, spine_id,defo
         vertebrae_labelmaps.append(curr_vert_path)
     return vertebrae_labelmaps
 
-
-def merge_labelmaps(vertebrae_labelmaps_paths):
-    labelmaps = [nib.load(vertebrae_labelmaps_path) for vertebrae_labelmaps_path in vertebrae_labelmaps_paths]
-    labelmap1 = labelmaps[0].get_fdata()
-    labelmap2 = labelmaps[1].get_fdata()
-
-    labelmap1_padded = np.pad(labelmap1, ((4, 4), (2, 3), (0, 0)), 'constant',
-                              constant_values=((12, 12), (12, 12), (12, 12)))
-    """
-    # concatenate the images with numpy and padding
-    concatenation_numpy = np.concatenate((labelmap1_padded, labelmap2_padded), axis=2)
-    concatenated_image_from_numpy = nib.Nifti1Image(concatenation_numpy,affine=np.eye(4))
-    nib.save(concatenated_image_from_numpy, "test_numpy_concat.nii.gz")
-    """
-
-    labelmap1_padded_image = nib.Nifti1Image(labelmap1_padded,affine=labelmaps[1].affine)
-    nib.save(labelmap1_padded_image, "labelmap1_padded.nii.gz")
-
-
-    # concatenate images with the nibabel concatenate
-    firstTwo = ["labelmap1_padded.nii.gz",vertebrae_labelmaps_paths[1]]
-    concatenation_nibabel = nib.funcs.concat_images(firstTwo,check_affines=True,axis=2)
-    nib.save(concatenation_nibabel, "test_nibabel_concat.nii.gz")
-
-    a = 3
-
-
-    #return combined_labelmap
-
-
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser(description="Generate strings in between vertebrae for spine deformation")
 
@@ -68,18 +38,39 @@ if __name__ == "__main__":
     )
 
     arg_parser.add_argument(
+        "--root_path_spines",
+        required=True,
+        dest="root_path_spines",
+        help="Root path to the spine folders."
+    )
+
+    arg_parser.add_argument(
         "--nr_deform_per_spine",
         required=True,
         dest="nr_deform_per_spine",
         help="Number of deformations per spine"
     )
 
+    arg_parser.add_argument(
+        "--workspace_file_merge_labelmaps",
+        required=True,
+        dest="workspace_file_merge_labelmaps",
+        help="ImFusion workspace file that merges multiple vertebrae labelmaps into one"
+    )
+
     args = arg_parser.parse_args()
 
     with open(args.txt_file) as file:
         spine_ids = [line.strip() for line in file]
+    placeholders = ['PathTo20', 'PathTo21', 'PathTo22', 'PathTo23', 'PathTo24', 'PathToSave']
 
     for spine_id in spine_ids:
         for deform in range(int(args.nr_deform_per_spine)):
             vertebrae_labelmaps = get_vertebrae_labelmaps_deformed_centered_paths(vertebrae_dir=args.root_path_vertebrae,spine_id=spine_id, deform=deform )
-            merge_labelmaps(vertebrae_labelmaps)
+            arguments = ""
+            for vert_lev in range(5):
+                arguments += placeholders[vert_lev] + "=" + vertebrae_labelmaps[vert_lev] + " "
+            path_combined_labelmap = os.path.join(args.root_path_spines,spine_id,os.path.basename(vertebrae_labelmaps[0]).replace("_verLev20",""))
+            arguments += placeholders[5] + "=" + path_combined_labelmap
+            print(arguments)
+            os.system("ImFusionConsole" + " " + args.workspace_file_merge_labelmaps + " " + arguments)
