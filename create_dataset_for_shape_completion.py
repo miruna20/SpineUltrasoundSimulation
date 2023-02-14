@@ -36,9 +36,9 @@ def processOneVertebra(pathCompleteVertebra, pathToPartialPCD, nrPointsProPartia
     completeVertebra.scale(scale_factor, completeVertebra.get_center())
     partial_pcd.scale(scale_factor, completeVertebra.get_center())
 
-    #center
-    #completeVertebra.vertices = o3d.utility.Vector3dVector(completeVertebra.vertices - completeVertebra.get_center())
-    #partial_pcd.points = o3d.utility.Vector3dVector(partial_pcd.points - partial_pcd.get_center())
+    center_vertebra = completeVertebra.get_center()
+    completeVertebra.vertices = o3d.utility.Vector3dVector(completeVertebra.vertices - center_vertebra)
+    partial_pcd.points = o3d.utility.Vector3dVector(partial_pcd.points - center_vertebra)
 
     # sample complete vertebra with the poisson disk sampling technique
     pointCloudComplete = o3d.geometry.TriangleMesh.sample_points_poisson_disk(completeVertebra, nrPointsProCompletePC)
@@ -50,14 +50,16 @@ def processOneVertebra(pathCompleteVertebra, pathToPartialPCD, nrPointsProPartia
         return 0, []
 
     if (visualize):
-        print("Visualizing input and ground truth after scaling")
+        coord_sys = o3d.geometry.TriangleMesh.create_coordinate_frame()
+
+        print("Visualizing input and ground truth after scaling and centering")
         pointCloudComplete.paint_uniform_color([0,1,0])
         partial_pcd.paint_uniform_color([0,0,1])
-        o3d.visualization.draw([pointCloudComplete, partial_pcd])
+        o3d.visualization.draw([pointCloudComplete, partial_pcd, coord_sys])
 
         print("Visualizing initial partial pointcloud and the sampled one")
         sampled_partial_pcd_translated = o3d.geometry.PointCloud.translate(sampled_partial_pcd,np.asarray([1.5, 0, 0]))
-        o3d.visualization.draw([partial_pcd, sampled_partial_pcd_translated])
+        o3d.visualization.draw([partial_pcd, sampled_partial_pcd_translated, coord_sys])
 
     partial_pcds = []
     partial_pcds.append(np.asarray(sampled_partial_pcd.points))
@@ -97,7 +99,7 @@ def saveToH5(fileName, stackedCropped, stackedComplete, labels,datasets_ids, nrS
 
 def processAllVertebrae(list_path, rootDirectoryVertebrae, saveTo,
                         nr_deform_per_sample, visualize=False, nrPointsProPartialPC=2048,
-                        nrPointsProCompletePC=4098):
+                        nrPointsProCompletePC=4096):
     # prepare lists for storing all vertebrae
     labels = []
     complete_pcds_all_vertebrae = []
