@@ -7,7 +7,6 @@
 			<param name="original">1</param>
 			<param name="topDown">1</param>
 			<param name="uid">data0</param>
-			<param name="transformation">1 2.44929365173252e-16 0 -0.92845153808593 -2.44929365173252e-16 1 0 -1.43735122680665 0 0 1 -3.11329650878906 0 0 0 1 </param>
 			<property name="Components">
 				<property name="DisplayOptions2d">
 					<param name="gamma">1</param>
