@@ -56,7 +56,7 @@ if __name__ == "__main__":
     for spine_id in spine_ids:
         for deform in range(int(args.nr_deform_per_spine)):
 
-            dir_save_path = os.path.join(args.root_path_spines,spine_id, "labels_force" + str(deform), "raycasted_compounded")
+            dir_save_path = os.path.join(args.root_path_spines,spine_id, "labels_force" + str(deform), "raycasted")
             if os.path.exists(dir_save_path):
                 shutil.rmtree(dir_save_path)
             os.makedirs(dir_save_path)
@@ -71,10 +71,8 @@ if __name__ == "__main__":
 
             for filename_label in filenames_labels:
                 label = np.array(Image.open(filename_label))
-                #TODO these ray casted labels need to contain multiple values
                 ray_casted_labels = ray_cast_image(label)
 
-                # TODO find out a way to dilate a labelmap with multiple values
                 ray_casted_labels = cv2.dilate(ray_casted_labels, np.ones((3, 3)), iterations=1)
 
                 label_name = os.path.basename(filename_label)

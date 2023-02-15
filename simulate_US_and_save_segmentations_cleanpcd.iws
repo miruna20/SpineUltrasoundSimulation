@@ -402,6 +402,14 @@
 				<param name="resizable">0</param>
 			</property>
 		</property>
+		<property name="Replace Values">
+			<param name="OldValues">12 </param>
+			<param name="NewValues">0 </param>
+			<param name="ForceCPU">1</param>
+			<param name="execute">1</param>
+			<param name="inputUids">"data2" </param>
+			<param name="outputUids"/>
+		</property>
 		<property name="Extract Tracking Stream">
 			<param name="Remove Timestamp">0</param>
 			<param name="Check Distance when Removing Timestamps">0</param>

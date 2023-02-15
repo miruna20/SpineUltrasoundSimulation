@@ -186,28 +186,13 @@ if __name__ == '__main__':
                         '--root_path_spines', root_path_spines,
                         '--nr_deform_per_spine', nr_deform_per_spine])
 
-    # TODO extract pcds for each vertebra separately
-    """
     if 'extract_pcd' in pipeline or 'all' in pipeline:
-    subprocess.run(['python', 'extract_pcd_from_US_labelmaps.py',
-                    '--list_file_names', txt_file_lumbar_spines,
-                    '--workspace_file',  workspace_file_extract_pointcloud,
-                    '--root_path_spines', root_path_spines,
-                    '--nr_deform_per_spine', nr_deform_per_spine])
-
-    """
-
-    # TODO align the vertebrae pcds with the vertebrae meshes
-    """
-    if 'align_pcd_to_mesh' in pipeline or 'all' in pipeline:
-        subprocess.run(['python', 'align_pcd_to_mesh.py',
+        subprocess.run(['python', 'extract_pcd_from_US_labelmaps_cleanpcd.py',
                         '--list_file_names', txt_file_lumbar_spines,
-                        '--workspace_file', workspace_file_align_pcd_to_mesh,
+                        '--workspace_file',  workspace_file_extract_pointcloud,
                         '--root_path_spines', root_path_spines,
+                        '--root_path_vertebrae', root_path_vertebrae,
                         '--nr_deform_per_spine', nr_deform_per_spine])
-
-    """
-
 
     if 'get_list_of_vertebrae_in_folder' in pipeline or 'all' in pipeline:
         subprocess.run(['python', 'get_list_of_vertebrae_in_folder.py',
