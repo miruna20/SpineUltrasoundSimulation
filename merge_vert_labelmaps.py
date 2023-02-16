@@ -73,4 +73,4 @@ if __name__ == "__main__":
             path_combined_labelmap = os.path.join(args.root_path_spines,spine_id,os.path.basename(vertebrae_labelmaps[0]).replace("_verLev20",""))
             arguments += placeholders[5] + "=" + path_combined_labelmap
             print(arguments)
-            os.system("ImFusionSuite" + " " + args.workspace_file_merge_labelmaps + " " + arguments)
+            os.system("ImFusionConsole" + " " + args.workspace_file_merge_labelmaps + " " + arguments)

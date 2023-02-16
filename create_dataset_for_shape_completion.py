@@ -128,7 +128,7 @@ def processAllVertebrae(list_path, rootDirectoryVertebrae, saveTo,
             # make sure not to accidentally select the scaled ones
             model_path  = [path for path in paths if 'scaled' not in os.path.basename(path)][0]
 
-            unique_identifier_partial_pcd = "*verLev*" + "*forces*" + str(deform) + "*deformed*" + "*centered*" +  "*.pcd"
+            unique_identifier_partial_pcd = "*verLev*" + "*forces*" + str(deform) + "*deformed_clean_aligned*" +  "*.pcd"
             partial_model_path =  glob.glob(os.path.join(rootDirectoryVertebrae, model_id, unique_identifier_partial_pcd))[0]
 
             #  process each vertebra individually
