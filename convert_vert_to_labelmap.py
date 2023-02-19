@@ -57,5 +57,5 @@ if __name__ == "__main__":
                 # call imfusion console with the correct parameters
                 arguments += placeholders[0] + "=" + filenames[deform] + " "
                 arguments += placeholders[1] + "=" + filenames[deform].replace(".obj", ".nii.gz") + " "
-                arguments += placeholders[2] + "=" + str(verLev)
+                arguments += placeholders[2] + "=" + str(verLev-7)
                 os.system("ImFusionConsole" + " " + args.workspace_file + " " + arguments)

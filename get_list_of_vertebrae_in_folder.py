@@ -44,7 +44,7 @@ if __name__ == "__main__":
     for spine in spine_ids:
         for verLev in range(20,25):
             pcds = False
-            unique_identifier_pcds = "*/**" + spine + "*verLev" + str(verLev) + "*deformed_centered*" + "*.pcd"
+            unique_identifier_pcds = "*/**" + spine + "*verLev" + str(verLev) + "*deformed_clean_aligned*" + "*.pcd"
             files = glob.glob(os.path.join(args.root_path_vertebrae, unique_identifier_pcds))
             spine_id_and_verLev =  spine + "_verLev" + str(verLev)
             if(len(files) == int(args.nr_deform_per_spine)):

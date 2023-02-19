@@ -52,11 +52,11 @@ if __name__ == "__main__":
 
             # we extract one point cloud per vertebra
             for vertebra in range(20,25):
-                values_to_remove = ['20', '21', '22', '23', '24']
+                values_to_remove = ['13', '14', '15', '16', '17']
                 print("Extracting pointcloud from ultrasound for: " + str(spine_id) + "and deformation" + str(deform) + " and vert: " + str(vertebra))
 
                 # the current level of the vertebra we keep, the rest of the labels we replace with 0
-                values_to_remove.remove(str(vertebra))
+                values_to_remove.remove(str(vertebra-7))
 
                 # create arguments list to call ImFusion with
                 arguments = ""
