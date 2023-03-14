@@ -35,16 +35,19 @@ def processOneVertebra(pathCompleteVertebra, pathToPartialPCD, nrPointsProPartia
     # delete all points that are below the center of mass of completeVert
     center_pcd = partial_pcd.get_center()
     points = np.asarray(partial_pcd.points).tolist()
-    points_above_center_of_mass = [point for point in points if (point[1] > center_pcd[1]-4)]
+    #points_above_center_of_mass = [point for point in points if (point[1] > center_pcd[1] or point[0] > center_pcd[0]+3 or point[0] < center_pcd[0]-3)]
+    #points_above_center_of_mass = [point for point in points if (point[1] > center_pcd[1]-4)]
+    points_above_center_of_mass = [point for point in points]
     partial_pcd.points = o3d.utility.Vector3dVector(np.asarray(points_above_center_of_mass))
 
     #scale down
     completeVertebra.scale(scale_factor, completeVertebra.get_center())
-    partial_pcd.scale(scale_factor, completeVertebra.get_center())
+    partial_pcd.scale(scale_factor, partial_pcd.get_center())
 
     center_vertebra = completeVertebra.get_center()
+    center_pcd = partial_pcd.get_center()
     completeVertebra.vertices = o3d.utility.Vector3dVector(completeVertebra.vertices - center_vertebra)
-    partial_pcd.points = o3d.utility.Vector3dVector(partial_pcd.points - center_vertebra)
+    partial_pcd.points = o3d.utility.Vector3dVector(partial_pcd.points - center_pcd)
 
     # sample complete vertebra with the poisson disk sampling technique
     pointCloudComplete = o3d.geometry.TriangleMesh.sample_points_poisson_disk(completeVertebra, nrPointsProCompletePC)
@@ -86,6 +89,8 @@ def processOneVertebra(pathCompleteVertebra, pathToPartialPCD, nrPointsProPartia
 
 def extractLabel(nameVertebra):
     label = nameVertebra.split("verLev")[1]
+    label = label.split(".")[0]
+
     return int(label)
 
 
@@ -159,7 +164,7 @@ def processAllVertebrae(list_path, rootDirectoryVertebrae, saveTo,
             # if the partial point cloud has less than nrPointsProPartialPC then partial_pcds will be an empty list
             if len(partial_pcds) == 0:
                 continue
-
+            print(partial_pcds[0].shape)
             # add it to h5py
             # make sure that the smallest label will be 0
             label_normalized = extractLabel(model_id) - min_label
@@ -185,10 +190,53 @@ def processAllVertebrae(list_path, rootDirectoryVertebrae, saveTo,
     saveToH5(saveTo, stackedCropped=stacked_partial_pcds, stackedComplete=stacked_complete_pcds,
              labels=labels_array, datasets_ids=stacked_dataset_ids,  nrSamplesPerClass=1)
 
+def create_dataset_withoutGT(nrPointsProPartialPC,nrPointsProCompletePC,visualize, saveTo):
+    model_path = "/home/miruna20/Documents/Thesis/Dataset/VerSe2020/vertebrae/01_training/sub-verse534_verLev21/sub-verse534_verLev21_forces0_deformed_20_0.obj"
+    partial_model_root = "/home/miruna20/Documents/Thesis/Dataset/Maria_dataset"
+    partial_model_paths =[
+        os.path.join(partial_model_root, "Maria's_spine_centered_verLev20.pcd"),
+        os.path.join(partial_model_root, "Maria's_spine_centered_verLev21.pcd"),
+        os.path.join(partial_model_root, "Maria's_spine_centered_verLev22.pcd"),
+        os.path.join(partial_model_root, "Maria's_spine_centered_verLev23.pcd")]
+    min_label = 20
+    complete_pcds_all_vertebrae = []
+    partial_pcds_all_vertebrae = []
+    labels = []
+    for partial_model_path in partial_model_paths:
+        complete_pcd, partial_pcds = processOneVertebra(pathCompleteVertebra=model_path,
+                                                        pathToPartialPCD=partial_model_path,
+                                                        visualize=visualize,
+                                                        nrPointsProPartialPC=nrPointsProPartialPC,
+                                                        nrPointsProCompletePC=nrPointsProCompletePC)
+        # if the partial point cloud has less than nrPointsProPartialPC then partial_pcds will be an empty list
+        if len(partial_pcds) == 0:
+            continue
+        print(partial_pcds[0].shape)
+
+        label_normalized = extractLabel(partial_model_path) - min_label
+        complete_pcds_all_vertebrae.append(complete_pcd)
+        partial_pcds_all_vertebrae.extend(partial_pcds)
+
+        # size of labels = size of all_partial_pcds
+        labels.extend([label_normalized for j in range(0, 1)])
+
+    stacked_partial_pcds = np.stack(partial_pcds_all_vertebrae, axis=0)
+    stacked_complete_pcds = np.stack(complete_pcds_all_vertebrae, axis=0)
+    labels_array = np.asarray(labels)
+
+    # for debugging print the shape
+    print("Shape of stacked_partial_pcds: " + str(stacked_partial_pcds.shape))
+    print("Shape of stacked_complete_pcds" + str(stacked_complete_pcds.shape))
+    print("Shape of labels" + str(labels_array.shape))
+
+    saveToH5(saveTo, stackedCropped=stacked_partial_pcds, stackedComplete=stacked_complete_pcds,
+             labels=labels_array, datasets_ids=np.asarray([]), nrSamplesPerClass=1)
+
 
 if __name__ == "__main__":
 
-    arg_parser = argparse.ArgumentParser(description="Create a dataset for completion training")
+    """
+     arg_parser = argparse.ArgumentParser(description="Create a dataset for completion training")
     arg_parser.add_argument(
         "--vertebrae_list",
         required=True,
@@ -240,3 +288,5 @@ if __name__ == "__main__":
                         nrPointsProPartialPC=int(args.nr_points_per_point_cloud),
                         nrPointsProCompletePC=int(args.nr_points_per_point_cloud),
                         )
+    """
+    create_dataset_withoutGT(nrPointsProPartialPC=4096,nrPointsProCompletePC=4096,visualize=True,saveTo="/home/miruna20/Documents/Thesis/Dataset/Maria_dataset/dataset_Maria.h5")

@@ -62,7 +62,7 @@ if __name__ == "__main__":
     for spine_id in spine_ids:
         for deform in range(int(args.nr_deform_per_spine)):
             print("Simulating ultrasound for: " + str(spine_id) + "and deformation" + str(deform))
-            look_for = "**/*" + str(spine_id) + "*forcefield" + str(deform) + "*deformed*" '*centered*'+ '*.nii.gz'
+            look_for = "**/*" + str(spine_id) + "*forces" + str(deform) + "*deformed*" '*centered*'+ '*.nii.gz'
             filenames = sorted(
                 glob.glob(os.path.join(args.root_path_spines, look_for), recursive=True))
             if (len(filenames) != 1):
